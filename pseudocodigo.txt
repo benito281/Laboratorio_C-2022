@@ -1,249 +1,159 @@
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+ACCIÓN incendios-forestales ES
+	AMBIENTE
+	Estudio = REGISTRO
+		región : AN(20)
+		terrenoQuemado, mes : entero 
+	FIN_REGISTRO
 
-struct Estudio {
-  char region[20];
-  int estado; // 1:activo  2:controlado   3:contenido
-  int terrenoquemado;
-  int mes;
-};
+	Campo = REGISTRO
+		estado, terrenoQuemado : entero
+	FIN_REGISTRO
 
-struct campo {
-  int estado;
-  int terrenoquemado;
-};
+	Campo01 = REGISTRO
+		region, terrenoQuemado : entero
+	FIN_REGISTRO
 
-struct campo01 {
-  int region, terrenoquemado;
-};
+	FUNCIÓN clasifRegión (b : CARACTER) : ENTERO ES
+		SEGÚN b HACER
+			"NORESTE"    : clasifRegión := 1;
+			"NOROESTE"   : clasifRegión := 2;
+			"CUYO"       : clasifRegión := 3;
+			"PAMPEANA"   : clasifRegión := 4;
+			"PATAGONICA" : clasifRegión := 5;
+		FIN_SEGÚN
+	FIN_FUNCIÓN
 
-// creacion del archivo
-void creacionDeArchivo(FILE *arch, int regs) {
-  struct Estudio estudio[14] = {
-      {"CUYO", 1, 320, 1},      {"CUYO", 2, 30, 1},
-      {"CUYO", 2, 150, 1},      {"CUYO", 3, 100, 2},
-      {"CUYO", 3, 50, 2},       {"NORESTE", 1, 50, 2},
-      {"NORESTE", 2, 100, 3},   {"NOROESTE", 2, 20, 3},
-      {"NOROESTE", 3, 100, 4},  {"PAMPEANA", 1, 74, 3},
-      {"PAMPEANA", 1, 30, 5},   {"PATAGONICA", 2, 8, 5},
-      {"PATAGONICA", 3, 12, 6}, {"PATAGONICA", 3, 27, 6},
-  };
+	PROCEDIMIENTO ordenarVector (m : ARREGLO DE Campo01) ES
+		AMBIENTE
+		j : entero;
+		cambios : logico;
+		aux1 : campo01;
+	PROCESO
+		cambios := Verdadero;
+		MIENTRAS (cambios = verdadero o 1) HACER
+			cambios := Falso;
+			PARA j := 1 HASTA 5 HACER
+				SI (m[j].terrenoquemado > m[j + 1].terrenoquemado) ENTONCES
+		        aux1.terrenoquemado = m[j].terrenoQuemado;
+		        aux1.region = m[j].region;
+		        m[j] = m[j + 1];
+		        m[j + 1].terrenoQuemado = aux1.terrenoQuemado;
+		        m[j + 1].region = aux1.region;
+		        cambios = Verdadero;
+				FIN_SI
+			FIN_PARA
+			SI (cambios = Falso) ENTONCES
+				ESCRIBIR('Terminado');
+			FIN_SI
+		FIN_MIENTRAS
+	FIN_PROCEDIMIENTO
 
-  arch = fopen("incendios-forestales.dat", "w"); // Creación de archivo
+	FUNCIÓN clasifRegiont (b : entero) : CARACTER ES
+		SEGÚN (b) HACER
+			1 : clasifRegiont := 'Noreste'; 
+			2 : clasifRegiont := 'Noroeste';
+			3 : clasifRegiont := 'Cuyo';
+			4 : clasifRegiont := 'Pampeana';
+			5 : clasifRegiont := 'Patagónica'; 
+		FIN_SEGÚN
+	FIN_FUNCIÓN
 
-  if (arch == NULL) {
-    fprintf(stderr, "\nError al abrir el archivo\n");
-    exit(1);
-  }
+	FUNCIÓN clasifmesnt(a : ENTERO) : CARACTER ES
+        SEGÚN (a) HACER
+            1 : clasifmesnt := 'Mayo';
+            2 : clasifmesnt := 'Junio';
+            3 : clasifmesnt := 'Julio';
+            4 : clasifmesnt := 'Agosto';
+            5 : clasifmesnt := 'Septiembre';
+        FIN_SEGÚN;
+	FIN_FUNCIÓN
 
-  regs = fwrite(estudio, sizeof(estudio), 1,
-                arch); // Devuelve 1 si estatodo bien si no devuelve 0
+    v : ARREGLO [1..7][1..8] de Campo;
+    m : ARREGLO [1..6] de Campo01;
+    arch : archivo de Estudio;
+    reg : Estudio;
+    x, y, contactiv, contcontro, contconten, cantincend, a, b, c, d, 
+    e, region, regs, mes, mesmayor, regionmayor, aux, max : Entero;
 
-  if (regs != 0)
-    printf("Se han guardado correctamente los datos!\n");
-  else
-    printf("Error al guardar!\n");
+PROCESO
+    ABRIR E/ (arch);
+    LEER(arch, reg);
 
-  fclose(arch);
-}
+    //Ponemos la matriz a 0
+    PARA x := 1 HASTA 7 HACER
+        PARA y := 1 HASTA 8 HACER
+            v[x][y].estado := 0;
+            v[x][y].terrenoquemado := 0;
+        FIN_PARA
+    FIN_PARA
 
-// fin creacion de archivo
+  contactiv,contcontro,contconten,aux := 0;
 
-int clasifRegion(char b[]) {
-  if (strcmp(b, "NORESTE") == 0) {
-    return 1;
-  }
-  if (strcmp(b, "NOROESTE") == 0) {
-    return 2;
-  }
-  if (strcmp(b, "CUYO") == 0) {
-    return 3;
-  }
-  if (strcmp(b, "PAMPEANA") == 0) {
-    return 4;
-  }
-  if (strcmp(b, "PATAGONICA") == 0) {
-    return 5;
-  }
-}
+    MIENTRAS (NFDA(arch)) HACER
+        region := clasifRegion(reg.region);
+        mes := reg.mes;
+        v[region][mes].estado := reg.estado;
+        v[region][mes].terrenoquemado := v[region][mes].terrenoquemado + reg.terrenoquemado;
 
-void ordenarVector(struct campo01 m[6]) {
-  int j;
-  struct campo01 aux1;
-  bool cambios = true;
-  while (1) {
-    // Esto se usa para la proxima vuelta, dentro del ciclo
-    cambios = false;
-    for (j = 1; j < 5; ++j) {
-      // Comparo par de posiciones dentro del array
-      if (m[j].terrenoquemado > m[j + 1].terrenoquemado) {
-        // Hago el intercambio
-        aux1.terrenoquemado = m[j].terrenoquemado;
-        aux1.region = m[j].region;
-        m[j] = m[j + 1];
-        m[j + 1].terrenoquemado = aux1.terrenoquemado;
-        m[j + 1].region = aux1.region;
-        // Cambio el valor de verdad
-        cambios = true;
-      }
-    }
+        LEER(arch, reg);
+    FIN_MIENTRAS
 
-    if (!cambios) {
-      break;
-    }
-  }
-}
+    PARA y := 1 HASTA 7 HACER
+        PARA x := 1 HASTA 6 HACER
+            v[x][7].terrenoquemado := v[x][y].terrenoquemado + v[x][y].terrenoquemado;
+            v[x][7].estado := 0;
+            SEGÚN (v[x][y].estado) HACER
+              1 : contactiv  + 1;
+              2 : contcontro + 1;
+              3 : contconten + 1;
+            FIN_SEGÚN
+          v[6][y].terrenoquemado := v[x][y].terrenoquemado + v[x][y].terrenoquemado;
+          v[6][y].estado := 0;
+        FIN_PARA
+    FIN_PARA
+    PARA y := 1 HASTA 8 HACER
+        SI (v[6][y].terrenoquemado > aux) ENTONCES
+          aux := v[6][y].terrenoquemado;
+          mesmayor := y;
+        FIN_SI
+    FIN_PARA
 
-char *clasifregiont(int b) {
-  switch (b) {
-  case 1:
-    return "noreste";
-    break;
-  case 2:
-    return "noroeste";
-    break;
-  case 3:
-    return "cuyo";
-    break;
-  case 4:
-    return "pampeana";
-    break;
-  case 5:
-    return "patagonica";
-    break;
-  }
-}
-
-char *clasifmesnt(int a) {
-  switch (a) {
-  case 1:
-    return "mayo";
-    break;
-  case 2:
-    return "junio";
-    break;
-  case 3:
-    return "julio";
-    break;
-  case 4:
-    return "agosto";
-    break;
-  case 5:
-    return "septiembre";
-    break;
-  case 6:
-    return "octubre";
-    break;
-  }
-}
-
-int main() {
-
-  FILE *f;
-  struct campo v[7][8];
-  struct campo01 m[6];
-  struct campo01 aux1;
-  struct Estudio reg;
-  int x, y, contactiv, contcontro, contconten, cantincend, a, b, c, d, e;
-  int region, regs;
-  int mes, mesmayor, regionmayor, aux, max;
-  creacionDeArchivo(f, regs); // Se crea el archivo
-  f = fopen("incendios-forestales.dat", "r");
-  if (f == NULL) {
-    printf("no se a podido abrir el fichero.\n");
-    exit(1);
-  }
-
-  for (x = 1; x < 7; x++) {
-    for (y = 1; y < 8; y++) {
-      v[x][y].estado = 0;
-      v[x][y].terrenoquemado = 0;
-    }
-  }
-
-  contactiv = 0;
-  contconten = 0;
-  contcontro = 0;
-  aux = 0;
-
-  fread(&reg, sizeof(struct Estudio), 1, f);
-  while (!feof(f)) {
-    region = clasifRegion(reg.region);
-    mes = reg.mes;
-    v[region][mes].estado = reg.estado;
-    v[region][mes].terrenoquemado =
-        v[region][mes].terrenoquemado + reg.terrenoquemado;
-    fread(&reg, sizeof(struct Estudio), 1, f);
-  }
-  fclose(f);
-  for (y = 1; y < 7; y++) {
-    for (x = 1; x < 6; x++) {
-      v[x][7].terrenoquemado += v[x][y].terrenoquemado;
-      v[x][7].estado = 0;
-      switch (v[x][y].estado) {
-      case 1:
-        contactiv++;
-        break;
-      case 2:
-        contcontro++;
-        break;
-      case 3:
-        contconten++;
-        break;
-      }
-      v[6][y].terrenoquemado += v[x][y].terrenoquemado;
-      v[6][y].estado = 0;
-    }
-  }
-
-  for (y = 1; y < 8; y++) {
-    if (v[6][y].terrenoquemado > aux) {
-      aux = v[6][y].terrenoquemado;
-      mesmayor = y;
-    }
-  }
-
-  for (x = 1; x < 6; x++) {
-    m[x].region = x;
-    m[x].terrenoquemado = v[x][7].terrenoquemado;
-  }
+  PARA x := 1 HASTA 6 HACER
+    m[x].region := x;
+    m[x].terrenoquemado := v[x][7].terrenoquemado;
+  FIN_PARA
 
   ordenarVector(m);
 
-  printf("-------------------------------------------------\n");
-  printf("------------------------------------------------- \n");
+  ESCRIBIR("Hectareas del Noreste es: ", v[1][7].terrenoquemado);
+  ESCRIBIR("Hectareas del Noroeste es: ", v[2][7].terrenoquemado);
+  ESCRIBIR("Hectareas del Cuyo es: ", v[3][7].terrenoquemado);
+  ESCRIBIR("Hectareas del Pampeana es: ", v[4][7].terrenoquemado);
+  ESCRIBIR("Hectareas del Patagonica es: ", v[5][7].terrenoquemado);
 
-  printf("hectareas del noreste es: %d \n", v[1][7].terrenoquemado);
-  printf("hectareas del noroeste es: %d \n", v[2][7].terrenoquemado);
-  printf("hectareas del cuyo es: %d \n", v[3][7].terrenoquemado);
-  printf("hectareas del pampeana es: %d \n", v[4][7].terrenoquemado);
-  printf("hectareas del patagonica es: %d \n", v[5][7].terrenoquemado);
+  ESCRIBIR("-------------------------------------------------");
+  ESCRIBIR("-------------------------------------------------");
 
-  printf("-------------------------------------------------\n");
-  printf("------------------------------------------------- \n");
+  ESCRIBIR("La cantidad de incendios activos son: ", contactiv);
+  ESCRIBIR("La cantidad de incendios controlados son: ", contcontro);
+  ESCRIBIR("La cantidad de incendios contenido son: ", contconten);
 
-  printf("la cantidad de incendios activos son: %d \n", contactiv);
-  printf("la cantidad de incendios controlados son: %d \n", contcontro);
-  printf("la cantidad de incendios contenido son: %d \n", contconten);
+  ESCRIBIR("-------------------------------------------------\n");
+  ESCRIBIR("------------------------------------------------- \n");
 
-  printf("-------------------------------------------------\n");
-  printf("------------------------------------------------- \n");
+  ESCRIBIR("La región que más se quemó es ", clasifregiont(m[5].region));
+  ESCRIBIR("-------------------------------------------------\n");
+  ESCRIBIR("el mes que mas incendios contenidos tuvo fue ", clasifmesnt(mesmayor));
 
-  printf("la region que mas se quemo es %s \n", clasifregiont(m[5].region));
-  printf("-------------------------------------------------\n");
-  printf("el mes que mas incendios contenidos tuvo fue %s \n",
-         clasifmesnt(mesmayor));
+  ESCRIBIR("-------------------------------------------------");
+  ESCRIBIR("------------------------------------------------- ");
 
-  printf("-------------------------------------------------\n");
-  printf("------------------------------------------------- \n");
 
-  printf("las regiones mas propensas a incendios son:  \n | %s       | \n | %s "
-         "   | \n | %s   |\n | %s   | \n | %s |",
-         clasifregiont(m[5].region), clasifregiont(m[4].region),
-         clasifregiont(m[3].region), clasifregiont(m[2].region),
-         clasifregiont(m[1].region));
+  ESCRIBIR("Las regiones mas propensas a incendios son:  ");
+  ESCRIBIR(clasifregiont(m[5].region, " ", clasifregiont(m[4].region);
+  ESCRIBIR(clasifregiont(m[3].region, " ", clasifregiont(m[2].region);
+  ESCRIBIR(clasifregiont(m[1].region);
 
-  return 0;
-}
+CERRAR(arch);
+
+FIN_ACCIÓN
