@@ -3,3 +3,7 @@ backup
 datos.dat
 incendios-forestales.dat
 main2
+.ccls-cache
+Makefile
+.replit
+replit.nix
