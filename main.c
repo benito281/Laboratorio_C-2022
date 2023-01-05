@@ -11,8 +11,7 @@ struct Estudio {
 };
 
 struct campo {
-  int estado;
-  int terrenoquemado;
+  int estado, terrenoquemado;
 };
 
 struct campo01 {
@@ -146,9 +145,8 @@ int main() {
   struct campo01 m[6];
   struct campo01 aux1;
   struct Estudio reg;
-  int x, y, contactiv, contcontro, contconten, cantincend, a, b, c, d, e;
-  int region, regs;
-  int mes, mesmayor, regionmayor, aux, max;
+  int x, y, contactiv, contcontro, contconten, cantincend, a, b, c, d, e,
+  region, regs, mes, mesmayor, regionmayor, aux, max;
   creacionDeArchivo(f, regs); // Se crea el archivo
   f = fopen("incendios-forestales.dat", "r");
   if (f == NULL) {
@@ -163,10 +161,7 @@ int main() {
     }
   }
 
-  contactiv = 0;
-  contconten = 0;
-  contcontro = 0;
-  aux = 0;
+  contactiv,contconten,contcontro,aux = 0;
 
   fread(&reg, sizeof(struct Estudio), 1, f);
   while (!feof(f)) {
