@@ -16,4 +16,4 @@ Obtener un programa en C para la solución de alguna de las problemáticas propu
 > 4. Clasificar las regiones en nivel de alerta según sea más propenso a producir incendios.
 
 ### Ver demo
-* [Repl](https://replit.com/@BenitoOrtiz1/lab2022)
+[![Run on Repl.it](https://repl.it/badge/github/benito281/Laboratorio_C-2022)](https://replit.com/@BenitoOrtiz1/lab2022)
